@@ -73,25 +73,24 @@ class MetaWallet {
 
     // @TODO: attach an API endpoint to call when building the execution transaction (using biconomy)
 
-
     /**
-             * sign the transaction based on biconomy 
+             * sign the transaction
              * 
              * @param {string} scwAddress - Address of the smart contract wallet 
              * @param {string} chainId - chain Id of the transaction
              * @param {any} safeTxBody - the transaction built by TXBuilder 
-             * @returns {string} the signed transaction
+             * @returns {Promise<string>} the signed transaction
              */
-    async getSignedTX(scwAddress: string, chainId: string, safeTxBody: BuildExecTransaction) {
-       
+    async getSignedTX(scwAddress: string, chainId: string, safeTxBody: BuildExecTransaction):Promise<string>{
+
         const signature = await this.webWallet._signTypedData({
             verifyingContract: scwAddress,
             chainId: ethers.BigNumber.from(chainId),
         }, EIP712_WALLET_TX_TYPE, safeTxBody);
-       
+
         let newSignature = '0x'
         newSignature += signature.slice(2);
-        
+
         return newSignature;
     }
 
