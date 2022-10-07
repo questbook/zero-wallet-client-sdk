@@ -22,6 +22,9 @@ class MetaWallet {
     gasStations: {
         [key: string]: string
     };
+    TXBuilders: {
+        [key: string]: string
+    };
     webWallet: Wallet;
 
     constructor() {
@@ -39,7 +42,7 @@ class MetaWallet {
                 localStorage.setItem('webwalletPrivateKey', newWebWallet.privateKey);
             }
         }
-        console.log('ww',localStorage.getItem('webwalletPrivateKey'));
+        console.log('ww', localStorage.getItem('webwalletPrivateKey'));
         this.webWallet = newWebWallet;
         this.address = newWebWallet.address;
         this.gasStations = {};
@@ -55,6 +58,17 @@ class MetaWallet {
      */
     attachGasStation = (gas_station: string, api_key: string): void => {
         this.gasStations[gas_station] = api_key;
+    }
+    /**
+         * Attach a gas station with this wallet to so it can be used 
+         * as a relayer later
+         * 
+         * @param {string} txBuilder - name of the TX Builder
+         * @param {string} api_key - The API key (endpoint) of the TX Builder
+         * @returns {void}
+         */
+    attachTXBuilder = (TXBuilder: string, api_key: string): void => {
+        this.TXBuilders[TXBuilder] = api_key;
     }
 
     // @TODO: attach an API endpoint to call when building the execution transaction (using biconomy)

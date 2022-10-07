@@ -27,7 +27,14 @@ function enableNoSuchMethod(obj: MetaContract) {
 class MetaContract {
 
     // Store different chains' contracts information
-    private supportedChains = ["ethereum", "polygon"] as Array<string>; 
+    private supportedChains =
+        [
+            "CELO_MAINNET",
+            "GOERLI_TESTNET",
+            "OPTIMISM_MAINNET",
+            "POLYGON_MAINNET"
+        ] as Array<string>;
+        
     contract = {} as ContractsJson;
     [key: string]: any;
     __noSuchMethod__: () => void;
@@ -43,6 +50,7 @@ class MetaContract {
     /**
      * Adds a generic chain contract
      * 
+     * @param {string} chain - The chain of this contract
      * @param {Array<AbiItem>} abi - The contract's ABI
      * @param {string} contractAddress - The contract's address
      * @returns {void}
@@ -74,7 +82,7 @@ class MetaContract {
      * @returns {ContractWithWallet} - Object to interact with the relayer
      * 
      */
-    attach(wallet: MetaWallet): ContractWithWallet{
+    attach(wallet: MetaWallet): ContractWithWallet {
         return new ContractWithWallet(this, wallet);
     }
 
