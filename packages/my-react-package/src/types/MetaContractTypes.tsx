@@ -1,3 +1,5 @@
+import { Contract } from "ethers"
+
 export interface ArgsJSON {
     name: string,
     type: string,
@@ -27,7 +29,8 @@ export interface AbiItem {
 
 export interface ContractJson {
         abi: Array<AbiItem>,
-        address: string
+        address: string,
+        ethersInstance:Contract
 } 
 
 export interface ContractsJson {

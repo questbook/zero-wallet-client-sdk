@@ -1,6 +1,7 @@
 import { ContractJson, AbiItem, ContractsJson } from './types/MetaContractTypes';
 import { MetaWallet } from './MetaWallet';
 import { ContractWithWallet } from './ContractWithWallet';
+import { ethers } from 'ethers';
 
 function enableNoSuchMethod(obj: MetaContract) {
     return new Proxy(obj, {
@@ -60,7 +61,8 @@ class MetaContract {
         console.log(chain, abi, contractAddress);
         this.contract[chain] = {
             abi: abi,
-            address: contractAddress
+            address: contractAddress,
+            ethersInstance:new ethers.Contract(contractAddress,abi)
         }
     }
 

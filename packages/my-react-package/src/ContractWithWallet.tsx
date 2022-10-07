@@ -31,6 +31,7 @@ class ContractWithWallet {
     wallet: MetaWallet;
     chain: string | null;
     toGasStation: string | null;
+    toTXBuilder: string | null;
     [key: string]: any;
     __noSuchMethod__: () => void;
 
@@ -103,6 +104,10 @@ class ContractWithWallet {
 
     // @TODO: implement a buildExecTransaction Method to build the transaction
     // by sending a post request to the server
+    // async buildExecTransaction(targetContractMethod: string, targetContractArgs: any) {
+    //     const { data } = await this.contract..populateTransaction[targetContractMethod](...targetContractArgs)
+
+    // }
 
     // @TODO: Check what needs to be modified here to work with the biconomy
     async sendSignedTransaction(functionName: string, argsJSON: ArgsJSON[]) {
@@ -140,6 +145,17 @@ class ContractWithWallet {
         this.toGasStation = this.wallet.gasStations[gas_station];
         return this;
     }
+    /**
+     * Sets the TX builder to use
+     * 
+     * @param {string} TXBuilder - Name of TX builder
+     * @returns {ContractWithWallet}
+     */
+     setTXBuilder(TXBuilder: string): ContractWithWallet {
+        this.toTXBuilder = this.wallet.TXBuilders[TXBuilder];
+        return this;
+    }
+    
 
     /**
      * Sets the chain to use
