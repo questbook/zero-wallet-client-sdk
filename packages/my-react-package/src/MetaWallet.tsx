@@ -1,20 +1,20 @@
-import { Wallet } from 'ethers';
+import { ethers, Wallet } from 'ethers';
+import { BuildExecTransaction } from './types/MetaWalletTypes';
 
-// let EIP712_SAFE_TX_TYPE = {
-//     // "SafeTx(address to,uint256 value,bytes data,uint8 operation,uint256 safeTxGas,uint256 baseGas,uint256 gasPrice,address gasToken,address refundReceiver,uint256 nonce)"
-//     SafeTx: [
-//       { type: "address", name: "to" },
-//       { type: "uint256", name: "value" },
-//       { type: "bytes", name: "data" },
-//       { type: "uint8", name: "operation" },
-//       { type: "uint256", name: "safeTxGas" },
-//       { type: "uint256", name: "baseGas" },
-//       { type: "uint256", name: "gasPrice" },
-//       { type: "address", name: "gasToken" },
-//       { type: "address", name: "refundReceiver" },
-//       { type: "uint256", name: "nonce" },
-//     ],
-//   };
+const EIP712_WALLET_TX_TYPE = {
+    WalletTx: [
+        { type: 'address', name: 'to' },
+        { type: 'uint256', name: 'value' },
+        { type: 'bytes', name: 'data' },
+        { type: 'uint8', name: 'operation' },
+        { type: 'uint256', name: 'targetTxGas' },
+        { type: 'uint256', name: 'baseGas' },
+        { type: 'uint256', name: 'gasPrice' },
+        { type: 'address', name: 'gasToken' },
+        { type: 'address', name: 'refundReceiver' },
+        { type: 'uint256', name: 'nonce' },
+    ],
+}
 // const abiCoder = new ethers.utils.AbiCoder();
 
 class MetaWallet {
@@ -73,12 +73,26 @@ class MetaWallet {
 
     // @TODO: attach an API endpoint to call when building the execution transaction (using biconomy)
 
-    // @TODO: get the right way to sign the transaction based on biconomy
-    async getSignedTX(argsTypes: Array<string>, argsValues: Array<any>, functionName: string, functionParamsInterface: string) {
 
-        let x = { argsTypes, argsValues, functionName, functionParamsInterface };
-        return x;
-
+    /**
+             * sign the transaction based on biconomy 
+             * 
+             * @param {string} scwAddress - Address of the smart contract wallet 
+             * @param {string} chainId - chain Id of the transaction
+             * @param {any} safeTxBody - the transaction built by TXBuilder 
+             * @returns {string} the signed transaction
+             */
+    async getSignedTX(scwAddress: string, chainId: string, safeTxBody: BuildExecTransaction) {
+       
+        const signature = await this.webWallet._signTypedData({
+            verifyingContract: scwAddress,
+            chainId: ethers.BigNumber.from(chainId),
+        }, EIP712_WALLET_TX_TYPE, safeTxBody);
+       
+        let newSignature = '0x'
+        newSignature += signature.slice(2);
+        
+        return newSignature;
     }
 
 };
