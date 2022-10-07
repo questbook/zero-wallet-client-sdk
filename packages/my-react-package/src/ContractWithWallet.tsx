@@ -2,7 +2,7 @@ import axios from 'axios';
 import { MetaContract } from './MetaContract';
 import { MetaWallet } from './MetaWallet';
 import { ContractJson, ArgsJSON, AbiItem } from './types/MetaContractTypes';
-
+import { BuildExecTransaction } from './types/MetaWalletTypes';
 
 // const abiCoder = new ethers.utils.AbiCoder();
 
@@ -89,15 +89,18 @@ class ContractWithWallet {
                 type: functionABI.inputs[index].type
             }
         });
-
-        return this.sendSignedTransaction(name, argsJSON);
+        const {safeTxBody,scwAddress}= await this.buildExecTransaction(this.contract.chain[this.chain].address,name,args);
+        const signedTX=await this.wallet.getSignedTX(scwAddress,this.chain,safeTxBody);
+        this.sendSignedTransaction(signedTX);
+        
     }
 
 
 
     // @TODO: implement a buildExecTransaction Method to build the transaction
     // by sending a post request to the server
-    async buildExecTransaction(targetContractAddress: string, targetContractMethod: string, targetContractArgs: any) {
+    async buildExecTransaction(targetContractAddress: string, targetContractMethod: string, targetContractArgs: any)
+    :Promise<{safeTxBody: BuildExecTransaction, scwAddress: string}> {
         if (!this.toTXBuilder)
             throw new Error("No TX builder Specified!");
 
@@ -108,12 +111,15 @@ class ContractWithWallet {
             throw new Error("Chain is no supported");
 
         const { data } = await this.contract.chain[this.chain].ethersInstance.populateTransaction[targetContractMethod](...targetContractArgs)
-        const safeTxBody = await axios.post(this.toTXBuilder, {
+        const response = await axios.post
+        <{safeTxBody: BuildExecTransaction, scwAddress: string}>(this.toTXBuilder, {
+            zeroWalletAddress:this.wallet.address,
             data,
-            to: targetContractAddress,
-            walletAddress: this.contract.chain[this.chain].address
-        })
-        return safeTxBody;
+           
+            to: targetContractAddress
+        });
+        const {safeTxBody,scwAddress} = response.data;
+        return {safeTxBody,scwAddress};
     }
 
     // @TODO: Check what needs to be modified here to work with the biconomy
@@ -126,7 +132,7 @@ class ContractWithWallet {
      * @param {ArgsJSON[]} argsJSON - Arguments of the function to execute
      * @returns 
      */
-    async sendSignedTransaction(functionName: string, argsJSON: ArgsJSON[]) {
+    async sendSignedTransaction(signedTX:string) {
 
         if (!this.toGasStation)
             throw new Error("No Gas Station Specified!");
@@ -134,21 +140,6 @@ class ContractWithWallet {
         if (!this.chain)
             throw new Error("No chain specified");
 
-        // array with the params types (in the same order as in the function definition)
-        let argsTypes: Array<string> = argsJSON.map((param) => (param["type"]));
-
-        // array with the values of the params 
-        let argsValues: Array<any> = argsJSON.map((param) => (param["value"]));
-
-        let finalArgs: any = this.wallet.getSignedTX(argsTypes, argsValues, functionName, "Fdsa");
-
-        let txHash = await axios.post(this.toGasStation,
-            {
-                function: functionName,
-                contract: this.contract.getChainJson(this.chain),
-                args: finalArgs
-            });
-        return txHash;
     }
 
     /**

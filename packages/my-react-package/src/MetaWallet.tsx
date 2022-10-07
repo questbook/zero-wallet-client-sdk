@@ -76,14 +76,15 @@ class MetaWallet {
     /**
              * sign the transaction
              * 
+             * @param {string} scwAddress - Address of the smart contract wallet 
              * @param {string} chainId - chain Id of the transaction
              * @param {any} safeTxBody - the transaction built by TXBuilder 
              * @returns {Promise<string>} the signed transaction
              */
-    async getSignedTX(chainId: string, safeTxBody: BuildExecTransaction):Promise<string>{
+    async getSignedTX(scwAddress: string, chainId: string, safeTxBody: BuildExecTransaction):Promise<string>{
 
         const signature = await this.webWallet._signTypedData({
-            verifyingContract: this.address,
+            verifyingContract: scwAddress,
             chainId: ethers.BigNumber.from(chainId),
         }, EIP712_WALLET_TX_TYPE, safeTxBody);
 

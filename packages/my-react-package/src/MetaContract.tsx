@@ -57,9 +57,8 @@ class MetaContract {
      * @returns {void}
      * 
     */
-    addChain(chain: string, abi: Array<AbiItem>, contractAddress: string): void {
-        console.log(chain, abi, contractAddress);
-        this.contract[chain] = {
+    addChain(newChain: string, abi: Array<AbiItem>, contractAddress: string): void {
+        this.chain[newChain] = {
             abi: abi,
             address: contractAddress,
             ethersInstance:new ethers.Contract(contractAddress,abi)
