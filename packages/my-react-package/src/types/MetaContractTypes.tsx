@@ -34,5 +34,5 @@ export interface ContractJson {
 } 
 
 export interface ContractsJson {
-    [chain: string]: ContractJson | null
+    [chain: string]: ContractJson 
 }

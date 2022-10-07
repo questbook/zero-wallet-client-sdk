@@ -9,7 +9,7 @@ function enableNoSuchMethod(obj: MetaContract) {
             if (p in target) {
                 return target[p];
             }
-            else if (target["supportedChains"].includes(p.toLowerCase())) {
+            else if (target["supportedChains"].includes(p.toUpperCase())) {
                 return async function (...args: any) {
                     let newArgs = [p];
                     newArgs.push(...args);
@@ -28,7 +28,7 @@ function enableNoSuchMethod(obj: MetaContract) {
 class MetaContract {
 
     // Store different chains' contracts information
-    private supportedChains =
+     supportedChains =
         [
             "CELO_MAINNET",
             "GOERLI_TESTNET",
@@ -36,10 +36,10 @@ class MetaContract {
             "POLYGON_MAINNET"
         ] as Array<string>;
         
-    contract = {} as ContractsJson;
+    chain = {} as ContractsJson;
     [key: string]: any;
     __noSuchMethod__: () => void;
-
+    address :string;
     constructor() {
         this.supportedChains.forEach((chain: string) => { this.contract[chain] = null; });
         this.__noSuchMethod__ = function (): void {

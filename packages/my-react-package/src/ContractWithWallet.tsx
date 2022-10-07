@@ -93,6 +93,31 @@ class ContractWithWallet {
         return this.sendSignedTransaction(name, argsJSON);
     }
 
+
+
+    // @TODO: implement a buildExecTransaction Method to build the transaction
+    // by sending a post request to the server
+    async buildExecTransaction(targetContractAddress: string, targetContractMethod: string, targetContractArgs: any) {
+        if (!this.toTXBuilder)
+            throw new Error("No TX builder Specified!");
+
+        if (!this.chain || !this.contract.chain)
+            throw new Error("No chain specified");
+
+        if (!this.contract.chain[this.chain] )
+            throw new Error("Chain is no supported");
+
+        const { data } = await this.contract.chain[this.chain].ethersInstance.populateTransaction[targetContractMethod](...targetContractArgs)
+        const safeTxBody = await axios.post(this.toTXBuilder, {
+            data,
+            to: targetContractAddress,
+            walletAddress: this.contract.chain[this.chain].address
+        })
+        return safeTxBody;
+    }
+
+    // @TODO: Check what needs to be modified here to work with the biconomy
+
     /**
      * Signs the transaction with this.wallet and then relay it to the
      * provided gas station
@@ -101,15 +126,6 @@ class ContractWithWallet {
      * @param {ArgsJSON[]} argsJSON - Arguments of the function to execute
      * @returns 
      */
-
-    // @TODO: implement a buildExecTransaction Method to build the transaction
-    // by sending a post request to the server
-    // async buildExecTransaction(targetContractMethod: string, targetContractArgs: any) {
-    //     const { data } = await this.contract..populateTransaction[targetContractMethod](...targetContractArgs)
-
-    // }
-
-    // @TODO: Check what needs to be modified here to work with the biconomy
     async sendSignedTransaction(functionName: string, argsJSON: ArgsJSON[]) {
 
         if (!this.toGasStation)
@@ -151,11 +167,11 @@ class ContractWithWallet {
      * @param {string} TXBuilder - Name of TX builder
      * @returns {ContractWithWallet}
      */
-     setTXBuilder(TXBuilder: string): ContractWithWallet {
+    setTXBuilder(TXBuilder: string): ContractWithWallet {
         this.toTXBuilder = this.wallet.TXBuilders[TXBuilder];
         return this;
     }
-    
+
 
     /**
      * Sets the chain to use
@@ -164,6 +180,12 @@ class ContractWithWallet {
      * @returns {ContractWithWallet}
      */
     on(chain: string): ContractWithWallet {
+        if (!this.contract.supportedChains[chain]) {
+            throw new Error("Chain is no supported");
+        }
+        if (!this.contract.chain[chain]) {
+            throw new Error("Chain is not attached");
+        }
         this.chain = chain;
         return this;
     }
