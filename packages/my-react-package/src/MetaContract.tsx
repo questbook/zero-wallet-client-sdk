@@ -2,6 +2,7 @@ import { ContractJson, AbiItem, ContractsJson } from './types/MetaContractTypes'
 import { MetaWallet } from './MetaWallet';
 import { ContractWithWallet } from './ContractWithWallet';
 import { ethers } from 'ethers';
+import { SupportedChainId } from './constants/chains';
 
 function enableNoSuchMethod(obj: MetaContract) {
     return new Proxy(obj, {
@@ -9,7 +10,7 @@ function enableNoSuchMethod(obj: MetaContract) {
             if (p in target) {
                 return target[p];
             }
-            else if (target["supportedChains"].includes(p.toUpperCase())) {
+            else if (target["supportedChainsIDs"][p.toUpperCase()]) {
                 return async function (...args: any) {
                     let newArgs = [p];
                     newArgs.push(...args);
@@ -28,14 +29,7 @@ function enableNoSuchMethod(obj: MetaContract) {
 class MetaContract {
 
     // Store different chains' contracts information
-     supportedChains =
-        [
-            "CELO_MAINNET",
-            "GOERLI_TESTNET",
-            "OPTIMISM_MAINNET",
-            "POLYGON_MAINNET"
-        ] as Array<string>;
-        
+     supportedChainsIDs =SupportedChainId;
     chain = {} as ContractsJson;
     [key: string]: any;
     __noSuchMethod__: () => void;

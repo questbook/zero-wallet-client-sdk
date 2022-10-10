@@ -31,7 +31,7 @@ class ContractWithWallet {
     wallet: MetaWallet;
     chain: string | null;
     toGasStation: string | null;
-    toTXBuilder: string | null;
+    toTxBuilder: string | null;
     [key: string]: any;
     __noSuchMethod__: () => void;
 
@@ -89,9 +89,9 @@ class ContractWithWallet {
                 type: functionABI.inputs[index].type
             }
         });
-        const {safeTxBody,scwAddress}= await this.buildExecTransaction(this.contract.chain[this.chain].address,name,args);
-        const signedTX=await this.wallet.getSignedTX(scwAddress,this.chain,safeTxBody);
-        this.sendSignedTransaction(signedTX);
+        const {safeTxBody,scwAddress}= await this.buildExecTx(this.contract.chain[this.chain].address,name,args);
+        const signedTx=await this.wallet.getSignedTx(scwAddress,this.chain,safeTxBody);
+        this.sendSignedTransaction(signedTx);
         
     }
 
@@ -99,10 +99,10 @@ class ContractWithWallet {
 
     // @TODO: implement a buildExecTransaction Method to build the transaction
     // by sending a post request to the server
-    async buildExecTransaction(targetContractAddress: string, targetContractMethod: string, targetContractArgs: any)
+    async buildExecTx(targetContractAddress: string, targetContractMethod: string, targetContractArgs: any)
     :Promise<{safeTxBody: BuildExecTransaction, scwAddress: string}> {
-        if (!this.toTXBuilder)
-            throw new Error("No TX builder Specified!");
+        if (!this.toTxBuilder)
+            throw new Error("No Tx builder Specified!");
 
         if (!this.chain || !this.contract.chain)
             throw new Error("No chain specified");
@@ -112,7 +112,7 @@ class ContractWithWallet {
 
         const { data } = await this.contract.chain[this.chain].ethersInstance.populateTransaction[targetContractMethod](...targetContractArgs)
         const response = await axios.post
-        <{safeTxBody: BuildExecTransaction, scwAddress: string}>(this.toTXBuilder, {
+        <{safeTxBody: BuildExecTransaction, scwAddress: string}>(this.toTxBuilder, {
             zeroWalletAddress:this.wallet.address,
             data,
            
@@ -132,7 +132,7 @@ class ContractWithWallet {
      * @param {ArgsJSON[]} argsJSON - Arguments of the function to execute
      * @returns 
      */
-    async sendSignedTransaction(signedTX:string) {
+    async sendSignedTransaction(signedTx:string) {
 
         if (!this.toGasStation)
             throw new Error("No Gas Station Specified!");
@@ -153,13 +153,13 @@ class ContractWithWallet {
         return this;
     }
     /**
-     * Sets the TX builder to use
+     * Sets the Tx builder to use
      * 
-     * @param {string} TXBuilder - Name of TX builder
+     * @param {string} TxBuilder - Name of Tx builder
      * @returns {ContractWithWallet}
      */
-    setTXBuilder(TXBuilder: string): ContractWithWallet {
-        this.toTXBuilder = this.wallet.TXBuilders[TXBuilder];
+    setTxBuilder(TxBuilder: string): ContractWithWallet {
+        this.toTxBuilder = this.wallet.TxBuilders[TxBuilder];
         return this;
     }
 

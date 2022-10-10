@@ -22,7 +22,7 @@ class MetaWallet {
     gasStations: {
         [key: string]: string
     };
-    TXBuilders: {
+    TxBuilders: {
         [key: string]: string
     };
     webWallet: Wallet;
@@ -63,12 +63,12 @@ class MetaWallet {
          * Attach a gas station with this wallet to so it can be used 
          * as a relayer later
          * 
-         * @param {string} txBuilder - name of the TX Builder
-         * @param {string} api_key - The API key (endpoint) of the TX Builder
+         * @param {string} txBuilder - name of the Tx Builder
+         * @param {string} api_key - The API key (endpoint) of the Tx Builder
          * @returns {void}
          */
-    attachTXBuilder = (TXBuilder: string, api_key: string): void => {
-        this.TXBuilders[TXBuilder] = api_key;
+    attachTxBuilder = (TxBuilder: string, api_key: string): void => {
+        this.TxBuilders[TxBuilder] = api_key;
     }
 
     // @TODO: attach an API endpoint to call when building the execution transaction (using biconomy)
@@ -78,10 +78,10 @@ class MetaWallet {
              * 
              * @param {string} scwAddress - Address of the smart contract wallet 
              * @param {string} chainId - chain Id of the transaction
-             * @param {any} safeTxBody - the transaction built by TXBuilder 
+             * @param {any} safeTxBody - the transaction built by TxBuilder 
              * @returns {Promise<string>} the signed transaction
              */
-    async getSignedTX(scwAddress: string, chainId: string, safeTxBody: BuildExecTransaction):Promise<string>{
+    async getSignedTx(scwAddress: string, chainId: string, safeTxBody: BuildExecTransaction):Promise<string>{
 
         const signature = await this.webWallet._signTypedData({
             verifyingContract: scwAddress,
