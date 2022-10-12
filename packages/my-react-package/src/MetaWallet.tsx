@@ -1,25 +1,28 @@
-import { Wallet } from 'ethers';
+import { ethers, Wallet } from 'ethers';
+import { BuildExecTransaction } from './types/MetaWalletTypes';
 
-// let EIP712_SAFE_TX_TYPE = {
-//     // "SafeTx(address to,uint256 value,bytes data,uint8 operation,uint256 safeTxGas,uint256 baseGas,uint256 gasPrice,address gasToken,address refundReceiver,uint256 nonce)"
-//     SafeTx: [
-//       { type: "address", name: "to" },
-//       { type: "uint256", name: "value" },
-//       { type: "bytes", name: "data" },
-//       { type: "uint8", name: "operation" },
-//       { type: "uint256", name: "safeTxGas" },
-//       { type: "uint256", name: "baseGas" },
-//       { type: "uint256", name: "gasPrice" },
-//       { type: "address", name: "gasToken" },
-//       { type: "address", name: "refundReceiver" },
-//       { type: "uint256", name: "nonce" },
-//     ],
-//   };
+const EIP712_WALLET_TX_TYPE = {
+    WalletTx: [
+        { type: 'address', name: 'to' },
+        { type: 'uint256', name: 'value' },
+        { type: 'bytes', name: 'data' },
+        { type: 'uint8', name: 'operation' },
+        { type: 'uint256', name: 'targetTxGas' },
+        { type: 'uint256', name: 'baseGas' },
+        { type: 'uint256', name: 'gasPrice' },
+        { type: 'address', name: 'gasToken' },
+        { type: 'address', name: 'refundReceiver' },
+        { type: 'uint256', name: 'nonce' },
+    ],
+}
 // const abiCoder = new ethers.utils.AbiCoder();
 
 class MetaWallet {
     address: string;
     gasStations: {
+        [key: string]: string
+    };
+    TxBuilders: {
         [key: string]: string
     };
     webWallet: Wallet;
@@ -39,7 +42,7 @@ class MetaWallet {
                 localStorage.setItem('webwalletPrivateKey', newWebWallet.privateKey);
             }
         }
-        console.log('ww',localStorage.getItem('webwalletPrivateKey'));
+        console.log('ww', localStorage.getItem('webwalletPrivateKey'));
         this.webWallet = newWebWallet;
         this.address = newWebWallet.address;
         this.gasStations = {};
@@ -56,15 +59,39 @@ class MetaWallet {
     attachGasStation = (gas_station: string, api_key: string): void => {
         this.gasStations[gas_station] = api_key;
     }
+    /**
+         * Attach a gas station with this wallet to so it can be used 
+         * as a relayer later
+         * 
+         * @param {string} txBuilder - name of the Tx Builder
+         * @param {string} api_key - The API key (endpoint) of the Tx Builder
+         * @returns {void}
+         */
+    attachTxBuilder = (TxBuilder: string, api_key: string): void => {
+        this.TxBuilders[TxBuilder] = api_key;
+    }
 
     // @TODO: attach an API endpoint to call when building the execution transaction (using biconomy)
 
-    // @TODO: get the right way to sign the transaction based on biconomy
-    async getSignedTX(argsTypes: Array<string>, argsValues: Array<any>, functionName: string, functionParamsInterface: string) {
+    /**
+             * sign the transaction
+             * 
+             * @param {string} scwAddress - Address of the smart contract wallet 
+             * @param {string} chainId - chain Id of the transaction
+             * @param {any} safeTxBody - the transaction built by TxBuilder 
+             * @returns {Promise<string>} the signed transaction
+             */
+    async getSignedTx(scwAddress: string, chainId: string, safeTxBody: BuildExecTransaction):Promise<string>{
 
-        let x = { argsTypes, argsValues, functionName, functionParamsInterface };
-        return x;
+        const signature = await this.webWallet._signTypedData({
+            verifyingContract: scwAddress,
+            chainId: ethers.BigNumber.from(chainId),
+        }, EIP712_WALLET_TX_TYPE, safeTxBody);
 
+        let newSignature = '0x'
+        newSignature += signature.slice(2);
+
+        return newSignature;
     }
 
 };

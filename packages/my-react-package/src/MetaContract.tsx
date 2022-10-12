@@ -1,6 +1,8 @@
 import { ContractJson, AbiItem, ContractsJson } from './types/MetaContractTypes';
 import { MetaWallet } from './MetaWallet';
 import { ContractWithWallet } from './ContractWithWallet';
+import { ethers } from 'ethers';
+import { SupportedChainId } from './constants/chains';
 
 function enableNoSuchMethod(obj: MetaContract) {
     return new Proxy(obj, {
@@ -8,7 +10,7 @@ function enableNoSuchMethod(obj: MetaContract) {
             if (p in target) {
                 return target[p];
             }
-            else if (target["supportedChains"].includes(p.toLowerCase())) {
+            else if (target["supportedChainsIDs"][p.toUpperCase()]) {
                 return async function (...args: any) {
                     let newArgs = [p];
                     newArgs.push(...args);
@@ -27,11 +29,11 @@ function enableNoSuchMethod(obj: MetaContract) {
 class MetaContract {
 
     // Store different chains' contracts information
-    private supportedChains = ["ethereum", "polygon"] as Array<string>; 
-    contract = {} as ContractsJson;
+     supportedChainsIDs =SupportedChainId;
+    chain = {} as ContractsJson;
     [key: string]: any;
     __noSuchMethod__: () => void;
-
+    address :string;
     constructor() {
         this.supportedChains.forEach((chain: string) => { this.contract[chain] = null; });
         this.__noSuchMethod__ = function (): void {
@@ -43,16 +45,17 @@ class MetaContract {
     /**
      * Adds a generic chain contract
      * 
+     * @param {string} chain - The chain of this contract
      * @param {Array<AbiItem>} abi - The contract's ABI
      * @param {string} contractAddress - The contract's address
      * @returns {void}
      * 
     */
-    addChain(chain: string, abi: Array<AbiItem>, contractAddress: string): void {
-        console.log(chain, abi, contractAddress);
-        this.contract[chain] = {
+    addChain(newChain: string, abi: Array<AbiItem>, contractAddress: string): void {
+        this.chain[newChain] = {
             abi: abi,
-            address: contractAddress
+            address: contractAddress,
+            ethersInstance:new ethers.Contract(contractAddress,abi)
         }
     }
 
@@ -74,7 +77,7 @@ class MetaContract {
      * @returns {ContractWithWallet} - Object to interact with the relayer
      * 
      */
-    attach(wallet: MetaWallet): ContractWithWallet{
+    attach(wallet: MetaWallet): ContractWithWallet {
         return new ContractWithWallet(this, wallet);
     }
 
