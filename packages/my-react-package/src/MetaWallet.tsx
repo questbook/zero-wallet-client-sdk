@@ -25,6 +25,9 @@ class MetaWallet {
     TxBuilders: {
         [key: string]: string
     };
+    authorizeEndpoints: {
+        [key: string]: string
+    }
     webWallet: Wallet;
 
     constructor() {
@@ -70,6 +73,17 @@ class MetaWallet {
     attachTxBuilder = (TxBuilder: string, api_key: string): void => {
         this.TxBuilders[TxBuilder] = api_key;
     }
+    /**
+         * Attach an authorize Endpoint for the wallet 
+         * as a relayer later
+         * 
+         * @param {string} authorizeEndpoint - name of the authorizeEndpoint
+         * @param {string} api_key - The API key (endpoint) of the authorizeEndpoint
+         * @returns {void}
+         */
+     attachAuthorizeEndpoint = (authorizeEndpoint: string, api_key: string): void => {
+        this.authorizeEndpoints[authorizeEndpoint] = api_key;
+    }
 
     // @TODO: attach an API endpoint to call when building the execution transaction (using biconomy)
 
@@ -81,7 +95,7 @@ class MetaWallet {
              * @param {any} safeTxBody - the transaction built by TxBuilder 
              * @returns {Promise<string>} the signed transaction
              */
-    async getSignedTx(scwAddress: string, chainId: string, safeTxBody: BuildExecTransaction):Promise<string>{
+    async getSignedTx(scwAddress: string, chainId: string, safeTxBody: BuildExecTransaction): Promise<string> {
 
         const signature = await this.webWallet._signTypedData({
             verifyingContract: scwAddress,
