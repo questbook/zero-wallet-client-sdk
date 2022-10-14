@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { ethers, Wallet } from 'ethers';
 import { BuildExecTransaction } from './types/MetaWalletTypes';
 
@@ -81,8 +82,22 @@ class MetaWallet {
          * @param {string} api_key - The API key (endpoint) of the authorizeEndpoint
          * @returns {void}
          */
-     attachAuthorizeEndpoint = (authorizeEndpoint: string, api_key: string): void => {
+    attachAuthorizeEndpoint = (authorizeEndpoint: string, api_key: string): void => {
         this.authorizeEndpoints[authorizeEndpoint] = api_key;
+    }
+
+    authorize = async (authorizeEndpoint:string):Promise<boolean> => {
+
+        if(!this.authorizeEndpoints[authorizeEndpoint]){
+            throw new Error("authorizeEndpoint is not found");            
+        }
+
+        const response = await axios.post(this.authorizeEndpoints[authorizeEndpoint],
+            {
+                'webwallet_address': this.address,
+            })
+
+        return !!response.data?.authorize;
     }
 
     // @TODO: attach an API endpoint to call when building the execution transaction (using biconomy)
