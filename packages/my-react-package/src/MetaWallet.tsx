@@ -29,6 +29,10 @@ class MetaWallet {
     authorizeEndpoints: {
         [key: string]: string
     }
+    nonceProviders: {
+        [key: string]: string
+    }
+
     webWallet: Wallet;
 
     constructor() {
@@ -123,11 +127,15 @@ class MetaWallet {
         return newSignature;
     }
 
-    getNonce = async (): Promise<string | undefined> => {
-        if (!this.webWallet) {
+    attachNonceProvider = (nonceProvider: string, api_key: string): void => {
+        this.nonceProviders[nonceProvider] = api_key;
+    }
+
+    getNonce = async (nonceProvider:string): Promise<string | undefined> => {
+        if (!this.webWallet|| !this.nonceProviders[nonceProvider]) {
             return;
         }
-        const response = await axios.post('https://2j6v8c5ee6.execute-api.ap-south-1.amazonaws.com/v0/refresh_nonce',
+        const response = await axios.post(this.nonceProviders[nonceProvider],
             {
                 webwallet_address: this.webWallet.address,
             })
