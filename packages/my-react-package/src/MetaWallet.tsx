@@ -86,10 +86,10 @@ class MetaWallet {
         this.authorizeEndpoints[authorizeEndpoint] = api_key;
     }
 
-    authorize = async (authorizeEndpoint:string):Promise<boolean> => {
+    authorize = async (authorizeEndpoint: string): Promise<boolean> => {
 
-        if(!this.authorizeEndpoints[authorizeEndpoint]){
-            throw new Error("authorizeEndpoint is not found");            
+        if (!this.authorizeEndpoints[authorizeEndpoint]) {
+            throw new Error("authorizeEndpoint is not found");
         }
 
         const response = await axios.post(this.authorizeEndpoints[authorizeEndpoint],
@@ -121,6 +121,20 @@ class MetaWallet {
         newSignature += signature.slice(2);
 
         return newSignature;
+    }
+
+    getNonce = async (): Promise<string | undefined> => {
+        if (!this.webWallet) {
+            return;
+        }
+        const response = await axios.post('https://2j6v8c5ee6.execute-api.ap-south-1.amazonaws.com/v0/refresh_nonce',
+            {
+                webwallet_address: this.webWallet.address,
+            })
+        if (response.data && response.data.nonce !== 'Token expired') {
+            return response.data.nonce
+        }
+        return;
     }
 
 };

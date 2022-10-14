@@ -12,7 +12,9 @@
     "build": "lerna run build --scope my-react-package",
     "clean": "lerna run clean --scope my-react-package",
     "watch": "lerna run watch --scope my-react-package",
-    "package": "lerna exec --scope my-react-package -- npm pack"
+    "package": "lerna exec --scope my-react-package -- npm pack",
+    "lint": "eslint .  --ext .ts",
+    "lint-fix": "eslint --fix .  --ext .ts"
   },
   "devDependencies": {
     "@types/react": "^17.0.6",
@@ -24,5 +26,9 @@
   },
   "dependencies": {
     "js-logger": "^1.6.1"
-  }
+  },
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/questbook/zero-wallet-client-sdk.git",
+  "license": "MIT"
 }
