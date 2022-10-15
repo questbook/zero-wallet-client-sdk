@@ -93,7 +93,7 @@ class MetaWallet {
     authorize = async (authorizeEndpoint: string): Promise<boolean> => {
 
         if (!this.authorizeEndpoints[authorizeEndpoint]) {
-            throw new Error("authorizeEndpoint is not found");
+            throw new Error("authorizeEndpoint is not attached");
         }
 
         const response = await axios.post(this.authorizeEndpoints[authorizeEndpoint],
@@ -131,18 +131,29 @@ class MetaWallet {
         this.nonceProviders[nonceProvider] = api_key;
     }
 
-    getNonce = async (nonceProvider:string): Promise<string | undefined> => {
-        if (!this.webWallet|| !this.nonceProviders[nonceProvider]) {
-            return;
+    getNonce = async (nonceProvider: string): Promise<string> => {
+        if (!this.nonceProviders[nonceProvider]) {
+            throw new Error("nonce Provider is not attached");
         }
+
+        const nonce: string | null = localStorage.getItem('nonce');
+        
+        if (nonce) return nonce;
+
         const response = await axios.post(this.nonceProviders[nonceProvider],
             {
                 webwallet_address: this.webWallet.address,
-            })
+            });
+
+
         if (response.data && response.data.nonce !== 'Token expired') {
-            return response.data.nonce
+
+            localStorage.setItem('nonce', response.data.nonce);
+            return response.data.nonce;
         }
-        return;
+
+        throw new Error("wallet is not authorized");
+
     }
 
 };
