@@ -137,7 +137,7 @@ class MetaWallet {
         }
 
         const nonce: string | null = localStorage.getItem('nonce');
-        
+
         if (nonce) return nonce;
 
         const response = await axios.post(this.nonceProviders[nonceProvider],
@@ -153,9 +153,16 @@ class MetaWallet {
         }
 
         throw new Error("wallet is not authorized");
-
     }
 
+    signNonce = async (nonce: string):
+        Promise<{ v: number, r: string, s: string, transactionHash: string }> => {
+        const nonceHash = ethers.utils.hashMessage(nonce)
+        const nonceSigString: string = await this.webWallet.signMessage(nonce)
+        const nonceSig: ethers.Signature = ethers.utils.splitSignature(nonceSigString)
+
+        return { v: nonceSig.v, r: nonceSig.r, s: nonceSig.s, transactionHash: nonceHash }
+    }
 };
 
 export {
