@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { ethers, Wallet } from 'ethers';
-import { BuildExecTransaction } from './types/MetaWalletTypes';
+import {  BuildExecTx } from './types/MetaWalletTypes';
 
 const EIP712_WALLET_TX_TYPE = {
     WalletTx: [
@@ -114,7 +114,7 @@ class MetaWallet {
              * @param {any} safeTxBody - the transaction built by TxBuilder 
              * @returns {Promise<string>} the signed transaction
              */
-    async getSignedTx(scwAddress: string, chainId: string, safeTxBody: BuildExecTransaction): Promise<string> {
+    async getSignedTx(scwAddress: string, chainId: string, safeTxBody: BuildExecTx): Promise<string> {
 
         const signature = await this.webWallet._signTypedData({
             verifyingContract: scwAddress,

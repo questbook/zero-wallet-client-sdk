@@ -3,7 +3,7 @@ import { MetaContract } from './MetaContract';
 import { MetaWallet } from './MetaWallet';
 import { WebHookAttributes } from './types/ContractWithWalletTypes';
 import { ContractJson, ArgsJSON, AbiItem } from './types/MetaContractTypes';
-import { BuildExecTransaction } from './types/MetaWalletTypes';
+import { BuildExecTx } from './types/MetaWalletTypes';
 
 // const abiCoder = new ethers.utils.AbiCoder();
 
@@ -111,7 +111,7 @@ class ContractWithWallet {
             'to': this.contract.address,
             'chain_id': this.contract.supportedChainsIDs[this.chain],
         };
-        this.sendSignedTransaction(safeTxBody, scwAddress, signedTx, webHookAttributes);
+        this.sendSignedTx(safeTxBody, scwAddress, signedTx, webHookAttributes);
     }
 
 
@@ -119,7 +119,7 @@ class ContractWithWallet {
     // @TODO: implement a buildExecTransaction Method to build the transaction
     // by sending a post request to the server
     async buildExecTx(targetContractAddress: string, targetContractMethod: string, targetContractArgs: any)
-        : Promise<{ safeTxBody: BuildExecTransaction, scwAddress: string }> {
+        : Promise<{ safeTxBody: BuildExecTx, scwAddress: string }> {
         if (!this.toTxBuilder)
             throw new Error("No Tx builder Specified!");
 
@@ -131,7 +131,7 @@ class ContractWithWallet {
 
         const { data } = await this.contract.chain[this.chain].ethersInstance.populateTransaction[targetContractMethod](...targetContractArgs)
         const response = await axios.post
-            <{ safeTxBody: BuildExecTransaction, scwAddress: string }>(this.toTxBuilder, {
+            <{ safeTxBody: BuildExecTx, scwAddress: string }>(this.toTxBuilder, {
                 zeroWalletAddress: this.wallet.address,
                 data,
 
@@ -151,8 +151,8 @@ class ContractWithWallet {
      * @param {ArgsJSON[]} argsJSON - Arguments of the function to execute
      * @returns 
      */
-    async sendSignedTransaction(
-        safeTxBody: BuildExecTransaction, scwAddress: string, signedTx: string, webHookAttributes: WebHookAttributes) {
+    async sendSignedTx(
+        safeTxBody: BuildExecTx, scwAddress: string, signedTx: string, webHookAttributes: WebHookAttributes) {
 
         if (!this.toGasStation)
             throw new Error("No Gas Station Specified!");

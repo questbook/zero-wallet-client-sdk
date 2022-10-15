@@ -1,4 +1,4 @@
-export type BuildExecTransaction = {
+export type BuildExecTx = {
     to: string
     value: number
     data: string
