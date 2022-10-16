@@ -1,8 +1,9 @@
 import axios from 'axios';
 import { MetaContract } from './MetaContract';
 import { MetaWallet } from './MetaWallet';
+import { WebHookAttributes } from './types/ContractWithWalletTypes';
 import { ContractJson, ArgsJSON, AbiItem } from './types/MetaContractTypes';
-import { BuildExecTransaction } from './types/MetaWalletTypes';
+import { BuildExecTx } from './types/MetaWalletTypes';
 
 // const abiCoder = new ethers.utils.AbiCoder();
 
@@ -32,6 +33,7 @@ class ContractWithWallet {
     chain: string | null;
     toGasStation: string | null;
     toTxBuilder: string | null;
+    toNonceProvider: string | null;
     [key: string]: any;
     __noSuchMethod__: () => void;
 
@@ -54,6 +56,10 @@ class ContractWithWallet {
      * @returns 
      */
     async handleContractFunctionCall(name: string, args: any) {
+
+        if (!this.toNonceProvider)
+            throw new Error("No nonce provider specified");
+
         if (!this.chain)
             throw new Error("No chain specified");
 
@@ -89,10 +95,23 @@ class ContractWithWallet {
                 type: functionABI.inputs[index].type
             }
         });
-        const {safeTxBody,scwAddress}= await this.buildExecTx(this.contract.chain[this.chain].address,name,args);
-        const signedTx=await this.wallet.getSignedTx(scwAddress,this.chain,safeTxBody);
-        this.sendSignedTransaction(signedTx);
-        
+
+        const { safeTxBody, scwAddress } = await this.buildExecTx(this.contract.chain[this.chain].address, name, args);
+
+        const signedTx = await this.wallet.getSignedTx(scwAddress, this.chain, safeTxBody);
+
+        const nonce: string = await this.wallet.getNonce(this.toNonceProvider);
+
+        const signedNonce: { v: number, r: string, s: string, transactionHash: string }
+            = await this.wallet.signNonce(nonce);
+
+        const webHookAttributes: WebHookAttributes = {
+            'signedNonce': signedNonce,
+            'nonce': nonce,
+            'to': this.contract.address,
+            'chain_id': this.contract.supportedChainsIDs[this.chain],
+        };
+        this.sendSignedTx(safeTxBody, scwAddress, signedTx, webHookAttributes);
     }
 
 
@@ -100,26 +119,26 @@ class ContractWithWallet {
     // @TODO: implement a buildExecTransaction Method to build the transaction
     // by sending a post request to the server
     async buildExecTx(targetContractAddress: string, targetContractMethod: string, targetContractArgs: any)
-    :Promise<{safeTxBody: BuildExecTransaction, scwAddress: string}> {
+        : Promise<{ safeTxBody: BuildExecTx, scwAddress: string }> {
         if (!this.toTxBuilder)
             throw new Error("No Tx builder Specified!");
 
         if (!this.chain || !this.contract.chain)
             throw new Error("No chain specified");
 
-        if (!this.contract.chain[this.chain] )
+        if (!this.contract.chain[this.chain])
             throw new Error("Chain is no supported");
 
         const { data } = await this.contract.chain[this.chain].ethersInstance.populateTransaction[targetContractMethod](...targetContractArgs)
         const response = await axios.post
-        <{safeTxBody: BuildExecTransaction, scwAddress: string}>(this.toTxBuilder, {
-            zeroWalletAddress:this.wallet.address,
-            data,
-           
-            to: targetContractAddress
-        });
-        const {safeTxBody,scwAddress} = response.data;
-        return {safeTxBody,scwAddress};
+            <{ safeTxBody: BuildExecTx, scwAddress: string }>(this.toTxBuilder, {
+                zeroWalletAddress: this.wallet.address,
+                data,
+
+                to: targetContractAddress
+            });
+        const { safeTxBody, scwAddress } = response.data;
+        return { safeTxBody, scwAddress };
     }
 
     // @TODO: Check what needs to be modified here to work with the biconomy
@@ -132,14 +151,22 @@ class ContractWithWallet {
      * @param {ArgsJSON[]} argsJSON - Arguments of the function to execute
      * @returns 
      */
-    async sendSignedTransaction(signedTx:string) {
+    async sendSignedTx(
+        safeTxBody: BuildExecTx, scwAddress: string, signedTx: string, webHookAttributes: WebHookAttributes) {
 
         if (!this.toGasStation)
             throw new Error("No Gas Station Specified!");
 
         if (!this.chain)
             throw new Error("No chain specified");
-            
+
+        return await axios.post(this.toGasStation, {
+            execTransactionBody: safeTxBody,
+            walletAddress: scwAddress,
+            signature: signedTx,
+            webHookAttributes,
+        })
+
 
     }
 
@@ -164,7 +191,10 @@ class ContractWithWallet {
         return this;
     }
 
-
+    setNonceProvider(nonceProvider: string): ContractWithWallet {
+        this.toNonceProvider = this.wallet.nonceProviders[nonceProvider];
+        return this;
+    }
     /**
      * Sets the chain to use
      * 

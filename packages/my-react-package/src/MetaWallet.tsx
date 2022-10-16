@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { ethers, Wallet } from 'ethers';
-import { BuildExecTransaction } from './types/MetaWalletTypes';
+import {  BuildExecTx } from './types/MetaWalletTypes';
 
 const EIP712_WALLET_TX_TYPE = {
     WalletTx: [
@@ -29,6 +29,10 @@ class MetaWallet {
     authorizeEndpoints: {
         [key: string]: string
     }
+    nonceProviders: {
+        [key: string]: string
+    }
+
     webWallet: Wallet;
 
     constructor() {
@@ -86,10 +90,10 @@ class MetaWallet {
         this.authorizeEndpoints[authorizeEndpoint] = api_key;
     }
 
-    authorize = async (authorizeEndpoint:string):Promise<boolean> => {
+    authorize = async (authorizeEndpoint: string): Promise<boolean> => {
 
-        if(!this.authorizeEndpoints[authorizeEndpoint]){
-            throw new Error("authorizeEndpoint is not found");            
+        if (!this.authorizeEndpoints[authorizeEndpoint]) {
+            throw new Error("authorizeEndpoint is not attached");
         }
 
         const response = await axios.post(this.authorizeEndpoints[authorizeEndpoint],
@@ -110,7 +114,7 @@ class MetaWallet {
              * @param {any} safeTxBody - the transaction built by TxBuilder 
              * @returns {Promise<string>} the signed transaction
              */
-    async getSignedTx(scwAddress: string, chainId: string, safeTxBody: BuildExecTransaction): Promise<string> {
+    async getSignedTx(scwAddress: string, chainId: string, safeTxBody: BuildExecTx): Promise<string> {
 
         const signature = await this.webWallet._signTypedData({
             verifyingContract: scwAddress,
@@ -123,6 +127,42 @@ class MetaWallet {
         return newSignature;
     }
 
+    attachNonceProvider = (nonceProvider: string, api_key: string): void => {
+        this.nonceProviders[nonceProvider] = api_key;
+    }
+
+    getNonce = async (nonceProvider: string): Promise<string> => {
+        if (!this.nonceProviders[nonceProvider]) {
+            throw new Error("nonce Provider is not attached");
+        }
+
+        const nonce: string | null = localStorage.getItem('nonce');
+
+        if (nonce) return nonce;
+
+        const response = await axios.post(this.nonceProviders[nonceProvider],
+            {
+                webwallet_address: this.webWallet.address,
+            });
+
+
+        if (response.data && response.data.nonce !== 'Token expired') {
+
+            localStorage.setItem('nonce', response.data.nonce);
+            return response.data.nonce;
+        }
+
+        throw new Error("wallet is not authorized");
+    }
+
+    signNonce = async (nonce: string):
+        Promise<{ v: number, r: string, s: string, transactionHash: string }> => {
+        const nonceHash = ethers.utils.hashMessage(nonce)
+        const nonceSigString: string = await this.webWallet.signMessage(nonce)
+        const nonceSig: ethers.Signature = ethers.utils.splitSignature(nonceSigString)
+
+        return { v: nonceSig.v, r: nonceSig.r, s: nonceSig.s, transactionHash: nonceHash }
+    }
 };
 
 export {
