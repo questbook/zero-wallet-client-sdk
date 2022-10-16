@@ -139,6 +139,7 @@ class ContractWithWallet {
 
         if (!this.chain)
             throw new Error("No chain specified");
+            
 
     }
 
