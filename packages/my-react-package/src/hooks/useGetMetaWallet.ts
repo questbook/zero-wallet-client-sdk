@@ -1,17 +1,16 @@
-import { useState,useEffect } from "react";
-import { MetaWallet } from "../MetaWallet";
+import { useState, useEffect } from 'react'
+import { MetaWallet } from '../MetaWallet'
 
-export function useGetMetaWallet() {
-    const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [wallet, setWallet] = useState<MetaWallet>();
-    
-    useEffect(() => {
-        if (!localStorage) return;
-        
-        setWallet(new MetaWallet());
-        setIsLoading(false);
-    }, [])
+export function useGetMetaWallet () {
+  const [isLoading, setIsLoading] = useState < boolean > (true)
+  const [wallet, setWallet] = useState < MetaWallet | undefined > (undefined)
 
-    return { zeroWallet: wallet,isLoading };
+  useEffect(() => {
+    if (!localStorage) return
 
+    setWallet(new MetaWallet())
+    setIsLoading(false)
+  }, [])
+
+  return { zeroWallet: wallet, isLoading }
 }

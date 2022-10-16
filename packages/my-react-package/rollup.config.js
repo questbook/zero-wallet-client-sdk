@@ -1,33 +1,33 @@
-import { nodeResolve } from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
-import typescript from 'rollup-plugin-typescript2';
-import postCSS from 'rollup-plugin-postcss';
-import json from '@rollup/plugin-json';
+import { nodeResolve } from '@rollup/plugin-node-resolve'
+import commonjs from '@rollup/plugin-commonjs'
+import typescript from 'rollup-plugin-typescript2'
+import postCSS from 'rollup-plugin-postcss'
+import json from '@rollup/plugin-json'
 
-import pkg from './package.json';
+import pkg from './package.json'
 
 export default {
   input: 'src/index.tsx',
   output: [
     {
       file: './lib/cjs/index.js',
-      format: 'cjs',
+      format: 'cjs'
     },
     {
       file: './lib/esm/index.js',
-      format: 'es',
-    },
+      format: 'es'
+    }
   ],
   external: [...Object.keys(pkg.peerDependencies || {})],
   plugins: [
     nodeResolve(),
     commonjs(),
     typescript({
-      typescript: require('typescript'),
+      typescript: require('typescript')
     }),
     postCSS({
-      plugins: [require('autoprefixer')],
+      plugins: [require('autoprefixer')]
     }),
     json()
-  ],
-};
+  ]
+}
