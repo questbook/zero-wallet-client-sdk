@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { ethers, Wallet } from 'ethers';
-import {  BuildExecTx } from './types/MetaWalletTypes';
+import { BuildExecTx } from './types/MetaWalletTypes';
 
 const EIP712_WALLET_TX_TYPE = {
     WalletTx: [
@@ -20,16 +20,16 @@ const EIP712_WALLET_TX_TYPE = {
 
 class MetaWallet {
     address: string;
-    gasStations: {
+    gasStations = {} as {
         [key: string]: string
     };
-    TxBuilders: {
+    TxBuilders = {} as {
         [key: string]: string
     };
-    authorizeEndpoints: {
+    authorizeEndpoints = {} as {
         [key: string]: string
     }
-    nonceProviders: {
+    nonceProviders = {} as {
         [key: string]: string
     }
 
@@ -37,10 +37,20 @@ class MetaWallet {
 
     constructor() {
         ///creating a new Wallet if no privateKey is found in the localStorage
-        const privateKey: string | null = localStorage.getItem('webwalletPrivateKey');
+        let privateKey: string | null = null;
+        try {
+            privateKey = localStorage.getItem('webwalletPrivateKey');
+        } catch {
+
+        }
+
         let newWebWallet: Wallet = Wallet.createRandom();
         if (!privateKey) {
-            localStorage.setItem('webwalletPrivateKey', newWebWallet.privateKey);
+            try {
+                localStorage.setItem('webwalletPrivateKey', newWebWallet.privateKey);
+            } catch {
+
+            }
         }
         ///creating a wallet from localStorage privateKey
         else {
@@ -50,10 +60,9 @@ class MetaWallet {
                 localStorage.setItem('webwalletPrivateKey', newWebWallet.privateKey);
             }
         }
-        console.log('ww', localStorage.getItem('webwalletPrivateKey'));
+
         this.webWallet = newWebWallet;
         this.address = newWebWallet.address;
-        this.gasStations = {};
     }
 
     /**
@@ -89,7 +98,10 @@ class MetaWallet {
     attachAuthorizeEndpoint = (authorizeEndpoint: string, api_key: string): void => {
         this.authorizeEndpoints[authorizeEndpoint] = api_key;
     }
-
+    async hi() {
+        const res = await fetch('http://example.com');
+        return res;
+    }
     authorize = async (authorizeEndpoint: string): Promise<boolean> => {
 
         if (!this.authorizeEndpoints[authorizeEndpoint]) {
