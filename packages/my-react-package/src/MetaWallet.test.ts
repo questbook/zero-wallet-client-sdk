@@ -17,13 +17,13 @@ describe('testing wallet endpoints', () => {
     wallet.attachGasStation('gasStationName', 'gasStationURL');
     expect(wallet.gasStations['gasStationName']).toBe('gasStationURL');
   });
-  test('testing attachGasStation', () => {
+  test('testing attachNonceProvider', () => {
     mockedAxios.post.mockResolvedValueOnce(1);
     let wallet = new MetaWallet();
     wallet.attachNonceProvider('nonceProviderName', 'nonceProviderURL');
     expect(wallet.nonceProviders['nonceProviderName']).toBe('nonceProviderURL');
   });
-  test('testing attachGasStation', () => {
+  test('testing attachTxBuilder', () => {
     mockedAxios.post.mockResolvedValueOnce(1);
     let wallet = new MetaWallet();
     wallet.attachTxBuilder('TxBuilderName', 'TxBuilderURL');
