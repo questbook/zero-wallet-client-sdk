@@ -103,13 +103,16 @@ class MetaWallet {
         if (!this.authorizeEndpoints[authorizeEndpoint]) {
             throw new Error("authorizeEndpoint is not attached");
         }
+        try {
+            const response = await axios.post(this.authorizeEndpoints[authorizeEndpoint],
+                {
+                    'webwallet_address': this.address,
+                })
 
-        const response = await axios.post(this.authorizeEndpoints[authorizeEndpoint],
-            {
-                'webwallet_address': this.address,
-            })
-
-        return !!response.data?.authorize;
+            return !!response.data?.authorize;
+        } catch(e) {
+            throw new Error(e);
+        }
     }
 
     // @TODO: attach an API endpoint to call when building the execution transaction (using biconomy)
