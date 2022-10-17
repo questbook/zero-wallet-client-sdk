@@ -98,10 +98,6 @@ class MetaWallet {
     attachAuthorizeEndpoint = (authorizeEndpoint: string, api_key: string): void => {
         this.authorizeEndpoints[authorizeEndpoint] = api_key;
     }
-    async hi() {
-        const res = await fetch('http://example.com');
-        return res;
-    }
     authorize = async (authorizeEndpoint: string): Promise<boolean> => {
 
         if (!this.authorizeEndpoints[authorizeEndpoint]) {
